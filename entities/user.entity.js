@@ -23,6 +23,13 @@ const UserScheme = mongoose.Schema({
         minLength: 4,
         required: [true, "Password is required"]
     },
+    chatList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
+    role:{
+        type: String,
+        minLength: 2,
+        default: 'abstract',
+        required: [true, "Role is required"]
+    }
 
 }, {
     timestamps: true,
