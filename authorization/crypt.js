@@ -6,7 +6,7 @@ const SECRET = process.env.TOKEN_SECRET
 const PASSWD_SECRET = process.env.PASSWORD_SECRET
 
 export function createToken(user){
-    return jwt.sign(user, SECRET, {expiresIn: "250h", algorithm: "HS512"})
+    return jwt.sign(user, SECRET, {expiresIn: "12h", algorithm: "HS512"})
 }
 
 export function hashPassword(password){

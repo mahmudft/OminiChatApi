@@ -12,3 +12,5 @@ const UserAboutScheme = mongoose.Schema({
         contentType: String, 
     },
 })
+
+export const UserAbout = mongoose.model("UserAbout", UserAboutScheme)
