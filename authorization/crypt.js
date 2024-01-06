@@ -18,7 +18,7 @@ export function hashPassword(password) {
 export async function createChatKeyHash(key) {
     try {
         const hash = jwt.sign({ key }, CHAT_KEY, { algorithm: 'HS512' });
-        return has;
+        return hash;
     } catch (error) {
         console.error('Hash creation failed:', error.message);
         throw error;
