@@ -14,6 +14,7 @@ export function authMiddleware(req, res, next){
     
         if (err) {
             console.log(err)
+            console.log("middlware error")
             return res.sendStatus(403)
         }
         req.user = user
