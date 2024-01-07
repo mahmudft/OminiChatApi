@@ -8,9 +8,10 @@ import cors from 'cors';
 import mongoose from "mongoose";
 import multer from "multer"
 import fs from 'fs';
-
+import { authMiddleware } from "../authorization/middleware.js"
 // import routers
 import { user } from "./routers/userRouter.js"
+import { chat } from "./routers/chatRouter.js"
 
 config()
 const PORT = process.env.PORT
@@ -41,11 +42,13 @@ server.use(rateConfig)
 server.use(upload.single("file"))
 server.use(parser.urlencoded({extended: false}))
 server.use(express.json())
+server.use("/chat", authMiddleware);
 // ** ~ Middlewares **
 
 // ** Routers  **
 
 server.use("/user", user)
+server.use("/chat", chat)
 server.use("/", user)
 
 

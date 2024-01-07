@@ -28,6 +28,7 @@ export async function createChatKeyHash(key) {
 export async function verifyChatKeyHash(hash) {
     try {
         const decoded = jwt.verify(hash, CHAT_KEY, { algorithms: ['HS512'] });
+        console.log(decoded,"verifyChatKeyHash function")
         return decoded.key;
     } catch (error) {
         console.error('Hash verification failed:', error.message);

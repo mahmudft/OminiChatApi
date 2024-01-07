@@ -69,7 +69,7 @@ user.post("/login", async (req, res) => {
         }
     } catch (error) {
         console.error(error);
-        console.log("++++++++++++++++++++++++++++")
+        console.log("+++++++++++Login Error+++++++++++++")
         return res.status(500).json({ message: "Internal server error" });
     }
 });
