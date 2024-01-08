@@ -12,11 +12,10 @@ const ChatSchema = new mongoose.Schema({
       type: String,
       required: [true, 'Sender ID is required'],
     },
-    receiver: { type: Schema.Types.ObjectId, ref: 'User' },
+    owner: { type: Schema.Types.ObjectId, ref: 'User' },
     messages: [{
       type: Schema.Types.ObjectId,
       ref: 'Message',
-      required: [true, 'Messages array is required and cannot be empty'],
     }],
     chatKey: {
       type: String,
@@ -24,4 +23,4 @@ const ChatSchema = new mongoose.Schema({
     },
 });
 
-  export const Message = mongoose.model('Chat', ChatSchema);
+  export const Chat = mongoose.model('Chat', ChatSchema);
