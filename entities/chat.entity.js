@@ -12,14 +12,14 @@ const ChatSchema = new mongoose.Schema({
       type: String,
       required: [true, 'Sender ID is required'],
     },
-    owner: { type: Schema.Types.ObjectId, ref: 'User' },
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     messages: [{
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'Message',
     }],
     chatKey: {
       type: String,
-      default: createChatKeyHash(crypto.randomBytes(9).toString('hex')),
+      default: "aaaa",
     },
 });
 

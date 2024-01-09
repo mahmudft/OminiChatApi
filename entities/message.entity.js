@@ -16,7 +16,7 @@ const MessageSchema = new mongoose.Schema({
       type: String,
       required: [true, 'Sender ID is required'],
     },
-    chat: { type: Schema.Types.ObjectId, ref: 'Chat' },
+    chat: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat' },
     hasSeen: { type: Boolean, default: false },
     encrypted: {
       type: Boolean,

@@ -8,7 +8,7 @@ import cors from 'cors';
 import mongoose from "mongoose";
 import multer from "multer"
 import fs from 'fs';
-import { authMiddleware } from "../authorization/middleware.js"
+import { authMiddleware } from "./authorization/middleware.js"
 // import routers
 import { user } from "./routers/userRouter.js"
 import { chat } from "./routers/chatRouter.js"
