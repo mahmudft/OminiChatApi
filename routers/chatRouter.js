@@ -88,13 +88,13 @@ chat.post("/sendmessage", async (req, res) => {
         });
         console.log("\n ")
         console.log(receiverUser.chatList[0]);
-
         currentUser.chatList[0].messages.push(message._id);
-        //receiverUser.chatList[0].messages.push(message2._id);
+        receiverUser.chatList[0].messages.push(message2._id);
         await message.save();
         await message2.save();
         await currentUser.chatList[0].save();
-       // await receiverUser.chatList[0].save();
+        await receiverUser.chatList[0].save();
+        console.log(receiverUser.chatList[0].messages)
         await currentUser.save();
         await receiverUser.save();
 
