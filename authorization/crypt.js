@@ -38,7 +38,7 @@ export async function verifyChatKeyHash(hash) {
 }
 
 export function verifyPassword(hashedpassword, password) {
-    return jwt.verify(hashedpassword, PASSWD_SECRET, (err, paswd) => {
+    return jwt.verify(hashedpassword, PASSWORD_SECRET, (err, paswd) => {
         console.log("------------")
         console.log(paswd)
         console.log("------------")
