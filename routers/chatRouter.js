@@ -4,6 +4,19 @@ import { Message } from "../entities/message.entity.js";
 import { Chat } from "../entities/chat.entity.js";
 
 export const chat = express.Router();
+
+////// FUNCTION
+
+async function CheckUser(userid) {
+    const user = await User.findById(userid);
+    if (user) {
+        return true;
+    }
+    return false;
+};
+
+
+
 ////////////////////// DUZEDIM
 chat.post("/sendmessage", async (req, res) => {
     // Body{obj.receiverId, obj.content}
@@ -98,10 +111,10 @@ chat.post("/sendmessage", async (req, res) => {
         // await Promise.all([
         // ]);
         await currentUser.chatList[0].save(),
-        await receiverUser.chatList[0].save(),
-        await currentUser.save(),
-        await receiverUser.save()
-        
+            await receiverUser.chatList[0].save(),
+            await currentUser.save(),
+            await receiverUser.save()
+
         console.log(receiverUser.chatList[0].messages);
         console.log("--------- send message section ------");
 
@@ -113,22 +126,43 @@ chat.post("/sendmessage", async (req, res) => {
 });
 
 
-
-
 // Get Methods
-// /messages?page=0&receiverId=123
-router.get('/chatmessages', async (req, res) => {
-    try {
-      const { page = 0 } = req.query;
-      const skipCount = page * 50; 
-  
-      const messages = await Message.find().skip(skipCount).limit(50);
-  
-      res.json(messages);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
 
+// /messages?page=0&receiverId=123
+chat.get('/chatmessages', async (req, res) => {
+    try {
+        console.log(receiverId);
+        const { page = 0, receiverId } = req.query;
+        const skipCount = page * 50;
+
+        if (await CheckUser(receiverId)) {
+            console.log("not found user");
+            return
+        }
+
+        const chatQuery = {
+            $or: [
+                { receiverId: receiverId, senderId: req.user.id },
+                { receiverId: req.user.id, senderId: receiverId }
+            ]
+        };
+
+        const chats = await Chat.find(chatQuery);
+        await chats.populate({
+            path: 'messages',
+            options: {
+                limit: 50,
+                skip: 50 * page
+            }
+        }).execPopulate();
+
+        const messages = chat.messages;
+        console.log(messages)
+
+        return res.status(200).json(messages);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
