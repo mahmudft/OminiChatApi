@@ -4,11 +4,7 @@ import crypto from "crypto";
 const mongoose = await createConnection()
 
 const ChatSchema = new mongoose.Schema({
-    receiverId: {
-      type: String,
-     
-    },
-    senderId: {
+    usertwo: {
       type: String,
      
     },

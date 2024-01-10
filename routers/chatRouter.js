@@ -8,13 +8,20 @@ export const chat = express.Router();
 ////// FUNCTION
 
 async function CheckUser(userid) {
-    const user = await User.findById(userid);
-    if (user) {
-        return true;
-    }
-    return false;
-};
+    return new Promise(async (resolve) => {
+        try {
+            setTimeout(async () => {
+                const user = await User.findById(userid);
+              
 
+                resolve(!!user); // Kullanıcı varsa true, yoksa false döndürür
+            });
+        } catch (error) {
+            console.error("Kullanıcı sorgulanırken hata:", error);
+            resolve(false); // Hata durumunda false döndürür
+        }
+    });
+}
 
 
 ////////////////////// DUZEDIM
@@ -26,8 +33,8 @@ chat.post("/sendmessage", async (req, res) => {
         const currentUser = await User.findById(req.user.id).populate({
             path: 'chatList',
             match: {
-                receiverId: obj.receiverId,
-                senderId: req.user.id
+                usertwo: obj.receiverId,
+
             }
         });
 
@@ -36,8 +43,7 @@ chat.post("/sendmessage", async (req, res) => {
         const receiverUser = await User.findById(obj.receiverId).populate({
             path: 'chatList',
             match: {
-                receiverId: obj.receiverId,
-                senderId: req.user.id
+                usertwo: req.user.id,
             }
         });
 
@@ -45,20 +51,19 @@ chat.post("/sendmessage", async (req, res) => {
 
         if (!currentUser) {
             console.log("Current User empty");
-            return;
+            res.status(404).json({ error: 'currentUser not found' });
         } else if (!receiverUser) {
             console.log("Receiver User empty");
-            return;
+            res.status(404).json({ error: 'currentUser not found' });
         }
 
         console.log("current user chat list \n");
         console.log(currentUser.chatList.length);
 
         // xetta bunun cagridgi ifinin icersinde idi hele eldim
-        const createAndSaveChat = async (user, senderId, receiverId) => {
+        const createAndSaveChat = async (user, receiverId) => {
             const chatldata = await Chat.create({
-                receiverId: receiverId,
-                senderId: senderId,
+                usertwo: receiverId,
                 owner: user.id,
                 messages: []
             });
@@ -71,7 +76,7 @@ chat.post("/sendmessage", async (req, res) => {
 
         if (!currentUser.chatList || currentUser.chatList.length === 0) {
 
-            const chatListData = await createAndSaveChat(currentUser, req.user.id, obj.receiverId);
+            const chatListData = await createAndSaveChat(currentUser, obj.receiverId);
             currentUser.chatList = [chatListData]; /// xetabunda imis yazdim duzeldi bele tezden beraber edende
         }
 
@@ -79,7 +84,7 @@ chat.post("/sendmessage", async (req, res) => {
         console.log("\nifffffffffffff\n");
 
         if (!receiverUser.chatList || receiverUser.chatList.length === 0) {
-            const chatListData = await createAndSaveChat(receiverUser, req.user.id, obj.receiverId);
+            const chatListData = await createAndSaveChat(receiverUser, req.user.id);
             receiverUser.chatList = [chatListData]; /// xeta bunda imis
         }
 
@@ -111,14 +116,14 @@ chat.post("/sendmessage", async (req, res) => {
         // await Promise.all([
         // ]);
         await currentUser.chatList[0].save(),
-            await receiverUser.chatList[0].save(),
-            await currentUser.save(),
-            await receiverUser.save()
+        await receiverUser.chatList[0].save(),
+        await currentUser.save(),
+        await receiverUser.save()
 
         console.log(receiverUser.chatList[0].messages);
         console.log("--------- send message section ------");
 
-        return "true";
+        return  res.status(200).send(true);
     } catch (error) {
         console.log(error);
         return error;
@@ -131,35 +136,36 @@ chat.post("/sendmessage", async (req, res) => {
 // /messages?page=0&receiverId=123
 chat.get('/chatmessages', async (req, res) => {
     try {
-        console.log(receiverId);
-        const { page = 0, receiverId } = req.query;
-        const skipCount = page * 50;
+        const { page, receiverId } = req.query;
+        console.log("''''''''''''''''''''")
 
-        if (await CheckUser(receiverId)) {
+        const limit = 2
+        const skipCount = page * limit;
+
+        if (! await CheckUser(receiverId)) {
             console.log("not found user");
-            return
+            return res.status(404).json({ error: "not found" });
         }
 
+
         const chatQuery = {
-            $or: [
-                { receiverId: receiverId, senderId: req.user.id },
-                { receiverId: req.user.id, senderId: receiverId }
+            $and: [
+                { usertwo: receiverId },
+                { owner: req.user.id }
             ]
         };
-
-        const chats = await Chat.find(chatQuery);
-        await chats.populate({
+        const mychat = await Chat.find(chatQuery).populate({
             path: 'messages',
             options: {
-                limit: 50,
-                skip: 50 * page
+                limit: limit,
+                skip: skipCount,
+                sort: { dateTime: -1 }
             }
-        }).execPopulate();
+        });
 
-        const messages = chat.messages;
-        console.log(messages)
+        const messagesArray = mychat.flatMap(chat => chat.messages); // create 1 array
 
-        return res.status(200).json(messages);
+        return res.status(200).json(messagesArray);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
