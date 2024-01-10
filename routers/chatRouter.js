@@ -25,6 +25,9 @@ async function CheckUser(userid) {
 
 
 ////////////////////// DUZEDIM
+/// Post functions
+//  /////////////////////////////*FrontendNOT*///////////////////////////////////
+//  json style(body)
 chat.post("/sendmessage", async (req, res) => {
     // Body{obj.receiverId, obj.content}
     console.log("----------------------------------------------");
@@ -132,8 +135,8 @@ chat.post("/sendmessage", async (req, res) => {
 
 
 // Get Methods
-
-// /messages?page=0&receiverId=123
+///////////////*FrontendNOT*////////////////////////////////////////////
+// /chatmessages?page=0&receiverId=123
 chat.get('/chatmessages', async (req, res) => {
     try {
         const { page, receiverId } = req.query;
