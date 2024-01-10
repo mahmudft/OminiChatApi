@@ -93,7 +93,6 @@ chat.post("/sendmessage", async (req, res) => {
 
         console.log("\n ");
         console.log(receiverUser.chatList[0]);
-        // savelerde awaitleri sildim ondan sonra problem hell oldu 
         currentUser.chatList[0].messages.push(message._id);
         receiverUser.chatList[0].messages.push(message2._id);
         // await Promise.all([
@@ -112,3 +111,24 @@ chat.post("/sendmessage", async (req, res) => {
         return error;
     }
 });
+
+
+
+
+// Get Methods
+// /messages?page=0&receiverId=123
+router.get('/chatmessages', async (req, res) => {
+    try {
+      const { page = 0 } = req.query;
+      const skipCount = page * 50; 
+  
+      const messages = await Message.find().skip(skipCount).limit(50);
+  
+      res.json(messages);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+
