@@ -14,11 +14,11 @@ async function CheckUser(userid) {
                 const user = await User.findById(userid);
               
 
-                resolve(!!user); // Kullanıcı varsa true, yoksa false döndürür
+                resolve(!!user);
             });
         } catch (error) {
             console.error("Kullanıcı sorgulanırken hata:", error);
-            resolve(false); // Hata durumunda false döndürür
+            resolve(false); 
         }
     });
 }
