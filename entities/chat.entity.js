@@ -4,24 +4,19 @@ import crypto from "crypto";
 const mongoose = await createConnection()
 
 const ChatSchema = new mongoose.Schema({
-    receiverId: {
+    usertwo: {
       type: String,
-      required: [true, 'Receiver ID is required'],
+     
     },
-    senderId: {
-      type: String,
-      required: [true, 'Sender ID is required'],
-    },
-    receiver: { type: Schema.Types.ObjectId, ref: 'User' },
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     messages: [{
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'Message',
-      required: [true, 'Messages array is required and cannot be empty'],
     }],
     chatKey: {
       type: String,
-      default: createChatKeyHash(crypto.randomBytes(9).toString('hex')),
+      default: "aaaa",
     },
 });
 
-  export const Message = mongoose.model('Chat', ChatSchema);
+  export const Chat = mongoose.model('Chat', ChatSchema);

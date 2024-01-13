@@ -83,7 +83,7 @@ user.post("/signup", async (req, res) => {
       console.log("duplicate")
       return res.status(400).json({ error: 'This email is already in use.' });
     }
-
+  });
     return res.status(500).json({ error: 'An error occurred.' });
   }
 });
@@ -107,6 +107,32 @@ user.post("/signup", async (req, res) => {
 // })
 
 user.post("/login", async (req, res) => {
+    const { password, email } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            console.log("User not found");
+            return res.status(404).send("User not found");
+        }
+
+        // Verify password
+        const isPasswordValid = await verifyPassword(user.password, password);
+        if (isPasswordValid) {
+            // Password is valid, create and send token
+            const token = createToken({ id: user._id, username: user.username, email: user.email });
+            console.log(token);
+
+            return res.status(200).json({ token });
+        } else {
+            // Password is not valid
+            return res.status(401).json({ message: "Invalid password" });
+        }
+    } catch (error) {
+        console.error(error);
+        console.log("+++++++++++Login Error+++++++++++++")
+        return res.status(500).json({ message: "Internal server error" });
+      
   const { password, email } = req.body;
 
   try {

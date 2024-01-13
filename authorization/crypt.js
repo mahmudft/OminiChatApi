@@ -3,14 +3,14 @@ import jwt from "jsonwebtoken"
 import crypto from 'crypto';
 config()
 const SECRET = process.env.TOKEN_SECRET
-const PASSWD_SECRET = process.env.PASSWORD_SECRET
+const PASSWORD_SECRET = process.env.PASSWORD_SECRET
 const CHAT_KEY = process.env.CHAT_KEY
 export function createToken(user) {
     return jwt.sign(user, SECRET, { expiresIn: "48h", algorithm: "HS512" })
 }
 
 export function hashPassword(password) {
-    return jwt.sign(password, PASSWD_SECRET)
+    return jwt.sign(password, PASSWORD_SECRET)
 }
 
 
@@ -18,6 +18,7 @@ export function hashPassword(password) {
 export async function createChatKeyHash(key) {
     try {
         const hash = jwt.sign({ key }, CHAT_KEY, { algorithm: 'HS512' });
+        console.log(hash)
         return hash;
     } catch (error) {
         console.error('Hash creation failed:', error.message);
@@ -28,6 +29,7 @@ export async function createChatKeyHash(key) {
 export async function verifyChatKeyHash(hash) {
     try {
         const decoded = jwt.verify(hash, CHAT_KEY, { algorithms: ['HS512'] });
+        console.log(decoded,"verifyChatKeyHash function")
         return decoded.key;
     } catch (error) {
         console.error('Hash verification failed:', error.message);
@@ -36,7 +38,7 @@ export async function verifyChatKeyHash(hash) {
 }
 
 export function verifyPassword(hashedpassword, password) {
-    return jwt.verify(hashedpassword, PASSWD_SECRET, (err, paswd) => {
+    return jwt.verify(hashedpassword, PASSWORD_SECRET, (err, paswd) => {
         console.log("------------")
         console.log(paswd)
         console.log("------------")
