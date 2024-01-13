@@ -17,7 +17,7 @@ async function CheckUser(userid) {
                 resolve(!!user);
             });
         } catch (error) {
-            console.error("Kullanıcı sorgulanırken hata:", error);
+            console.error("User Required Error:", error);
             resolve(false); 
         }
     });
