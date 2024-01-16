@@ -3,7 +3,7 @@ import { User } from "../entities/user.entity.js";
 import { Message } from "../entities/message.entity.js";
 import { Chat } from "../entities/chat.entity.js";
 import crypto from "crypto";
-import { createChatKeyHash } from "../authorization/crypt.js";
+import { createChatKeyHash, encryptMessage } from "../authorization/crypt.js";
 export const chat = express.Router();
 
 ////// FUNCTION
@@ -103,16 +103,16 @@ chat.post("/sendmessage", async (req, res) => {
         console.log(receiverUser);
         const chatIdCurrentUser = currentUser.chatList[0].id;
         const chatIdReceiverUser = receiverUser.chatList[0].id;
-
+        let cryptconent = await encryptMessage(obj.content,currentUser.chatList[0].chatKey);
         const message = await Message.create({
-            content: obj.content,
+            content: cryptconent,
             receiverId: obj.receiverId,
             senderId: req.user.id,
             chat: chatIdCurrentUser
         });
 
         const message2 = await Message.create({
-            content: obj.content,
+            content: cryptconent,
             receiverId: obj.receiverId,
             senderId: req.user.id,
             chat: chatIdReceiverUser
