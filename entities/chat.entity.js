@@ -1,6 +1,4 @@
-import { createChatKeyHash } from "../authorization/crypt.js";
 import { createConnection } from "../connection.js"
-import crypto from "crypto";
 const mongoose = await createConnection()
 
 const ChatSchema = new mongoose.Schema({
@@ -18,5 +16,7 @@ const ChatSchema = new mongoose.Schema({
       default: "aaaa",
     },
 });
+
+//createChatKeyHash(crypto.randomBytes(9).toString('hex')),
 
   export const Chat = mongoose.model('Chat', ChatSchema);
