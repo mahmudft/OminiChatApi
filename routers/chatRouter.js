@@ -2,7 +2,8 @@ import express from "express";
 import { User } from "../entities/user.entity.js";
 import { Message } from "../entities/message.entity.js";
 import { Chat } from "../entities/chat.entity.js";
-
+import crypto from "crypto";
+import { createChatKeyHash } from "../authorization/crypt.js";
 export const chat = express.Router();
 
 ////// FUNCTION
@@ -24,12 +25,13 @@ async function CheckUser(userid) {
 }
 
 
-////////////////////// DUZEDIM
+
 /// Post functions
 //  /////////////////////////////*FrontendNOT*///////////////////////////////////
 //  json style(body)
 chat.post("/sendmessage", async (req, res) => {
     // Body{obj.receiverId, obj.content}
+    let chatkey = null;
     console.log("----------------------------------------------");
     try {
         const obj = req.body;
@@ -63,14 +65,20 @@ chat.post("/sendmessage", async (req, res) => {
         console.log("current user chat list \n");
         console.log(currentUser.chatList.length);
 
-        // xetta bunun cagridgi ifinin icersinde idi hele eldim
+
         const createAndSaveChat = async (user, receiverId) => {
+            if (chatkey==null) {
+                chatkey = await createChatKeyHash(crypto.randomBytes(9).toString('hex'));
+                console.log("chatkey \n")
+                console.log(chatkey)
+            }
             const chatldata = await Chat.create({
                 usertwo: receiverId,
                 owner: user.id,
-                messages: []
+                messages: [],
+                chatKey: chatkey
+        
             });
-
             user.chatList.push(chatldata._id);
 
             await user.save();
@@ -80,7 +88,7 @@ chat.post("/sendmessage", async (req, res) => {
         if (!currentUser.chatList || currentUser.chatList.length === 0) {
 
             const chatListData = await createAndSaveChat(currentUser, obj.receiverId);
-            currentUser.chatList = [chatListData]; /// xetabunda imis yazdim duzeldi bele tezden beraber edende
+            currentUser.chatList = [chatListData];
         }
 
         console.log(receiverUser.chatList.length);
@@ -88,13 +96,11 @@ chat.post("/sendmessage", async (req, res) => {
 
         if (!receiverUser.chatList || receiverUser.chatList.length === 0) {
             const chatListData = await createAndSaveChat(receiverUser, req.user.id);
-            receiverUser.chatList = [chatListData]; /// xeta bunda imis
+            receiverUser.chatList = [chatListData]; 
         }
 
         console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzSECTION 2zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
         console.log(receiverUser);
-
-        // Now, after ensuring that chat lists are created and saved, proceed to message creation
         const chatIdCurrentUser = currentUser.chatList[0].id;
         const chatIdReceiverUser = receiverUser.chatList[0].id;
 
