@@ -12,12 +12,14 @@ import { authMiddleware } from "./authorization/middleware.js"
 // import routers
 import { user } from "./routers/userRouter.js"
 import { chat } from "./routers/chatRouter.js"
-
+import cookieParser from 'cookie-parser'
+import {createServer} from "http"
+import { Server } from "socket.io"
 config()
 const PORT = process.env.PORT
 
 const rateConfig = rateLimit({
-    windowMs: 10 * 60 * 1000,
+    windowMs: 10 * 60 * 5000,
     limit: 100,
     standardHeaders: "draft-6",
     legacyHeaders: false,
@@ -31,18 +33,63 @@ const upload = multer({dest: directory,
     limits: { fileSize: 10 * 1024 * 1024 }
 })
 
-
+const corsOptions = {
+    origin: true,
+    credentials: true,
+  };
 
 const server = express()
 
+const app = createServer(server)
+
+const io = new Server(app,{
+  cookie: true,
+  cors: {
+    origin: "http://localhost:3000",
+    credentials:true
+  }
+})
+
+io.on('connection', (socket) => {
+
+
+
+  socket.on('token', (data) => {
+      Console.log("--------------TOKEN_Section----------------")
+      const token = data.token;
+      console.log(token);
+      
+  });
+});
+
+// io.use((socket, next) => {
+//   if (socket.request) {
+//     console.log(socket.request.headers.cookie);
+//     next();
+//   } else {
+//     next(new Error("invalid"));
+//   }
+// });
+
+
+server.use(cookieParser());
 // ** Middlewares **
 server.disable("x-powered-by")
-server.use(cors());
+server.use(cors(corsOptions));
+server.use(express.urlencoded({extended: false}))
+server.use(express.json())
 server.use(rateConfig)
 server.use(upload.single("file"))
-server.use(parser.urlencoded({extended: false}))
-server.use(express.json())
 server.use("/chat", authMiddleware);
+
+server.use(function (req, res, next) {
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Credentials"
+    );
+    next();
+  });
+
 // ** ~ Middlewares **
 
 // ** Routers  **
@@ -60,10 +107,14 @@ server.use((req, res, next) => {
     next();
 });
 
+io.on('connection', (socket) => {
+  console.log('a user connected');
+});
+
   
 // ** ~ Routers  **
 
-server.listen(PORT, async () => {
+app.listen(PORT, async () => {
     await createConnection()
     console.log(`Server is running: http://localhost:${PORT}`)
 })

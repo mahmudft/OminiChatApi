@@ -7,6 +7,8 @@ import { Verification } from "../entities/verification.entity.js";
 import nodemailer from "nodemailer"
 export const user = express.Router()
 
+
+
 user.post("/send-otp", async (req, res) => {
   try {
     const email = req.body.email
@@ -75,6 +77,9 @@ user.post("/signup", async (req, res) => {
     const saved = await user.save();
     await saved.save();
     console.log("succes signup")
+    
+    
+
     return res.status(200).json(saved);
   } catch (error) {
     console.log(error);
@@ -105,8 +110,34 @@ user.post("/signup", async (req, res) => {
 
 // })
 
+user.get("/search",async (req,res)=>{
+  try {
+    const search = req.query.name;
+    if(!search){
+      return res.status(400).json([]);
+    }
+  
+    const users = await User.find({ name: { $regex: new RegExp(search, "i") } }).select('name').select('email');
+
+
+
+    if(users&&users.length>0){
+      return res.status(200).json(users)
+    }
+    else{
+      return res.status(200).json([]);
+    }
+
+  } catch (error) {
+      console.log(error)
+      return res.status(500).json({ message: "Internal server error" });
+  }
+})
+
 user.post("/login", async (req, res) => {
     const { password, email } = req.body;
+    console.log("LOGIN",req.body);
+
 
     try {
         const user = await User.findOne({ email });
@@ -122,7 +153,14 @@ user.post("/login", async (req, res) => {
             const token = createToken({ id: user._id, username: user.username, email: user.email });
             console.log(token);
 
-            return res.status(200).json({ token });
+            res.cookie("authToken", token, {
+              expires:  new Date(Date.now() + 24 * 60 * 60 * 1000),
+              httpOnly: true,
+              secure: true,
+              sameSite: "strict",
+            });
+
+            return res.status(200).send(user);
         } else {
             // Password is not valid
             return res.status(401).json({ message: "Invalid password" });
@@ -135,7 +173,25 @@ user.post("/login", async (req, res) => {
   })
 // authMiddleware
 
-user.get("/me", authMiddleware, async (req, res) => {
+user.post("/me", authMiddleware, async (req, res) => {
   const user = await User.find({ _id: req.user.id })
   res.send(user)
+})
+
+user.get("/:email", authMiddleware, async (req, res) => {
+  try {
+    const { email } = req.params;
+    const user = await User.find(
+      { email: { $regex: email, $options: "i" } },
+      "username email"
+    );
+    res.status(200).send(user);
+  } catch (error) {
+    return res.status(500).json(error);
+  }
+})
+
+user.post("/logOut", authMiddleware, async (req, res) => {
+  res.clearCookie("authToken");
+  res.status(200).json("success");
 })
