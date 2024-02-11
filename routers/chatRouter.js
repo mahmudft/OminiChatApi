@@ -148,7 +148,7 @@ chat.get('/chatmessages', async (req, res) => {
         const { page, receiverId } = req.query;
         console.log("''''''''''''''''''''")
 
-        const limit = 2
+        const limit = 10
         const skipCount = page * limit;
 
         if (! await CheckUser(receiverId)) {
