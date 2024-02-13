@@ -3,7 +3,7 @@ import { User } from "../entities/user.entity.js";
 import { Message } from "../entities/message.entity.js";
 import { Chat } from "../entities/chat.entity.js";
 import crypto from "crypto";
-import { createChatKeyHash, encryptMessage } from "../authorization/crypt.js";
+import { createChatKeyHash, decryptMessage, encryptMessage } from "../authorization/crypt.js";
 export const chat = express.Router();
 
 ////// FUNCTION
@@ -68,7 +68,7 @@ chat.post("/sendmessage", async (req, res) => {
 
         const createAndSaveChat = async (user, receiverId) => {
             if (chatkey==null) {
-                chatkey = await createChatKeyHash(crypto.randomBytes(9).toString('hex'));
+                chatkey =  createChatKeyHash();
                 console.log("chatkey \n")
                 console.log(chatkey)
             }
@@ -104,6 +104,13 @@ chat.post("/sendmessage", async (req, res) => {
         const chatIdCurrentUser = currentUser.chatList[0].id;
         const chatIdReceiverUser = receiverUser.chatList[0].id;
         let cryptconent = await encryptMessage(obj.content,currentUser.chatList[0].chatKey);
+        console.log("crtype conetent------------")
+        console.log(cryptconent);
+        console.log('====================================');
+        let decrtypy = await decryptMessage(cryptconent,currentUser.chatList[0].chatKey)
+        console.log("decrtypy conetent------------")
+        console.log(decrtypy)
+        console.log('====================================');
         const message = await Message.create({
             content: cryptconent,
             receiverId: obj.receiverId,
@@ -146,9 +153,9 @@ chat.post("/sendmessage", async (req, res) => {
 chat.get('/chatmessages', async (req, res) => {
     try {
         const { page, receiverId } = req.query;
-        console.log("''''''''''''''''''''")
+        console.log("\n ''''''''''''''''''''")
 
-        const limit = 2
+        const limit = 100
         const skipCount = page * limit;
 
         if (! await CheckUser(receiverId)) {
@@ -172,9 +179,20 @@ chat.get('/chatmessages', async (req, res) => {
             }
         });
 
-        const messagesArray = mychat.flatMap(chat => chat.messages); // create 1 array
+        //console.log(mychat)
+        const decryptedMessages = [];
 
-        return res.status(200).json(messagesArray);
+        mychat.forEach(chat => {
+            chat.messages.forEach(element => {
+                let decrtpycontent = decryptMessage(element.content,chat.chatKey);
+                element.content = decrtpycontent;
+                decryptedMessages.push(element)
+            });
+        });
+
+      
+
+        return res.status(200).json(decryptedMessages);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
