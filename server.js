@@ -45,19 +45,26 @@ const app = createServer(server)
 const io = new Server(app,{
   cookie: true,
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://localhost:4003",
     credentials:true
   }
 })
 
 io.on('connection', (socket) => {
+  console.log(socket.id);
+  socket.on('chat-message', (msg) => {
+    console.log("Msg",msg);
+    io.emit('chat-message', msg);
+  });
+
+
 
 
 
   socket.on('token', (data) => {
-      Console.log("--------------TOKEN_Section----------------")
-      const token = data.token;
-      console.log(token);
+      // Console.log("--------------TOKEN_Section----------------")
+      // const token = data.token;
+      // console.log(token);
       
   });
 });
@@ -78,7 +85,7 @@ server.disable("x-powered-by")
 server.use(cors(corsOptions));
 server.use(express.urlencoded({extended: false}))
 server.use(express.json())
-server.use(rateConfig)
+// server.use(rateConfig)
 server.use(upload.single("file"))
 server.use("/chat", authMiddleware);
 

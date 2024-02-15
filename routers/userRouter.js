@@ -110,17 +110,18 @@ user.post("/signup", async (req, res) => {
 
 // })
 
-user.get("/search",async (req,res)=>{
+user.get("/search", authMiddleware, async (req,res)=>{
   try {
     const search = req.query.name;
+    let myid = req.user.id
     if(!search){
       return res.status(400).json([]);
     }
-  
-    const users = await User.find({ name: { $regex: new RegExp(search, "i") } }).select('name').select('email');
+    console.log("-----------------")
+    let users = await User.find({ name: { $regex: new RegExp(search, "i") } }).select('name').select('email');
 
-
-
+    users = users.filter(user => user._id.toString() != myid);
+    console.log(users);
     if(users&&users.length>0){
       return res.status(200).json(users)
     }

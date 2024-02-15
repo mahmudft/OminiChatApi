@@ -8,6 +8,8 @@ export function authMiddleware(req, res, next) {
     // const header = req.headers['authorization']
     // const token = header && header.split(" ")[1]   // "Bearer kfjkdsfjkdjfkdsjfkdsjfsdfjsdkfjs"
     let token = req.cookies.authToken;
+    console.log("aaaaaaaaaaaaaaaaaaaaaaa")
+    console.log(token);
     // console.log(req.cookies);
     // console.log(`Auth Token ${token}`)
 

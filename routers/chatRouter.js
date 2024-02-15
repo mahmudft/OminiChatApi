@@ -3,7 +3,7 @@ import { User } from "../entities/user.entity.js";
 import { Message } from "../entities/message.entity.js";
 import { Chat } from "../entities/chat.entity.js";
 import crypto from "crypto";
-import { createChatKeyHash, encryptMessage } from "../authorization/crypt.js";
+import { createChatKeyHash, encryptMessage , decryptMessage } from "../authorization/crypt.js";
 export const chat = express.Router();
 
 ////// FUNCTION
@@ -32,7 +32,7 @@ async function CheckUser(userid) {
 chat.post("/sendmessage", async (req, res) => {
     // Body{obj.receiverId, obj.content}
     let chatkey = null;
-    console.log("----------------------------------------------");
+    // console.log("----------------------------------------------");
     try {
         const obj = req.body;
         const currentUser = await User.findById(req.user.id).populate({
@@ -43,8 +43,8 @@ chat.post("/sendmessage", async (req, res) => {
             }
         });
 
-        console.log("\n");
-        console.log(obj.receiverId);
+        // console.log("\n");
+        // console.log(obj.receiverId);
         const receiverUser = await User.findById(obj.receiverId).populate({
             path: 'chatList',
             match: {
@@ -52,25 +52,25 @@ chat.post("/sendmessage", async (req, res) => {
             }
         });
 
-        console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        // console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
         if (!currentUser) {
-            console.log("Current User empty");
+            // console.log("Current User empty");
             res.status(404).json({ error: 'currentUser not found' });
         } else if (!receiverUser) {
-            console.log("Receiver User empty");
+            // console.log("Receiver User empty");
             res.status(404).json({ error: 'currentUser not found' });
         }
 
-        console.log("current user chat list \n");
-        console.log(currentUser.chatList.length);
+        // console.log("current user chat list \n");
+        // console.log(currentUser.chatList.length);
 
 
         const createAndSaveChat = async (user, receiverId) => {
             if (chatkey==null) {
-                chatkey = await createChatKeyHash(crypto.randomBytes(9).toString('hex'));
-                console.log("chatkey \n")
-                console.log(chatkey)
+                chatkey =  createChatKeyHash();
+                // console.log("chatkey \n")
+                // console.log(chatkey)
             }
             const chatldata = await Chat.create({
                 usertwo: receiverId,
@@ -91,8 +91,8 @@ chat.post("/sendmessage", async (req, res) => {
             currentUser.chatList = [chatListData];
         }
 
-        console.log(receiverUser.chatList.length);
-        console.log("\nifffffffffffff\n");
+        // console.log(receiverUser.chatList.length);
+        // console.log("\nifffffffffffff\n");
 
         if (!receiverUser.chatList || receiverUser.chatList.length === 0) {
             const chatListData = await createAndSaveChat(receiverUser, req.user.id);
@@ -104,6 +104,13 @@ chat.post("/sendmessage", async (req, res) => {
         const chatIdCurrentUser = currentUser.chatList[0].id;
         const chatIdReceiverUser = receiverUser.chatList[0].id;
         let cryptconent = await encryptMessage(obj.content,currentUser.chatList[0].chatKey);
+        // console.log("crtype conetent------------")
+        // console.log(cryptconent);
+        // console.log('====================================');
+        let decrtypy = await decryptMessage(cryptconent,currentUser.chatList[0].chatKey)
+        // console.log("decrtypy conetent------------")
+        // console.log(decrtypy)
+        // console.log('====================================');
         const message = await Message.create({
             content: cryptconent,
             receiverId: obj.receiverId,
@@ -118,8 +125,8 @@ chat.post("/sendmessage", async (req, res) => {
             chat: chatIdReceiverUser
         });
 
-        console.log("\n ");
-        console.log(receiverUser.chatList[0]);
+        // console.log("\n ");
+        // console.log(receiverUser.chatList[0]);
         currentUser.chatList[0].messages.push(message._id);
         receiverUser.chatList[0].messages.push(message2._id);
         // await Promise.all([
@@ -129,30 +136,29 @@ chat.post("/sendmessage", async (req, res) => {
         await currentUser.save(),
         await receiverUser.save()
 
-        console.log(receiverUser.chatList[0].messages);
-        console.log("--------- send message section ------");
+        // console.log(receiverUser.chatList[0].messages);
+        // console.log("--------- send message section ------");
 
         return  res.status(200).send(true);
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         return error;
     }
 });
-
-
-// Get Methods
-///////////////*FrontendNOT*////////////////////////////////////////////
+// Get Methods m///////////////*FrontendNOT*////////////////////////////////////////////
 // /chatmessages?page=0&receiverId=123
 chat.get('/chatmessages', async (req, res) => {
     try {
-        const { page, receiverId } = req.query;
-        console.log("''''''''''''''''''''")
 
-        const limit = 10
+         const myid = req.user.id
+        const { page, receiverId } = req.query;
+        // console.log("\n ''''''''''''''''''''")
+
+        const limit = 100
         const skipCount = page * limit;
 
         if (! await CheckUser(receiverId)) {
-            console.log("not found user");
+            // console.log("not found user");
             return res.status(404).json({ error: "not found" });
         }
 
@@ -168,13 +174,26 @@ chat.get('/chatmessages', async (req, res) => {
             options: {
                 limit: limit,
                 skip: skipCount,
-                sort: { dateTime: -1 }
+                sort: { dateTime: 1 }
             }
         });
 
-        const messagesArray = mychat.flatMap(chat => chat.messages); // create 1 array
+        //console.log(mychat)
+        const decryptedMessages = [];
 
-        return res.status(200).json(messagesArray);
+        mychat.forEach(chat => {
+            chat.messages.forEach(element => {
+                let decrtpycontent = decryptMessage(element.content,chat.chatKey);
+                element.content = decrtpycontent;
+                decryptedMessages.push(element)
+            });
+        });
+
+
+
+      
+
+        return res.status(200).json(decryptedMessages);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
