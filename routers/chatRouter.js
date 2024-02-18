@@ -99,8 +99,8 @@ chat.post("/sendmessage", async (req, res) => {
             receiverUser.chatList = [chatListData]; 
         }
 
-        console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzSECTION 2zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
-        console.log(receiverUser);
+        // console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzSECTION 2zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
+        // console.log(receiverUser);
         const chatIdCurrentUser = currentUser.chatList[0].id;
         const chatIdReceiverUser = receiverUser.chatList[0].id;
         let cryptconent = await encryptMessage(obj.content,currentUser.chatList[0].chatKey);
@@ -183,8 +183,8 @@ chat.get('/chatmessages', async (req, res) => {
 
         mychat.forEach(chat => {
             chat.messages.forEach(element => {
-                let decrtpycontent = decryptMessage(element.content,chat.chatKey);
-                element.content = decrtpycontent;
+                // let decrtpycontent = decryptMessage(element.content,chat.chatKey);
+                // element.content = decrtpycontent;
                 decryptedMessages.push(element)
             });
         });

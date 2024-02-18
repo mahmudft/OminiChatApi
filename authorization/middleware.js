@@ -7,9 +7,8 @@ const SECRET = process.env.TOKEN_SECRET
 export function authMiddleware(req, res, next) {
     // const header = req.headers['authorization']
     // const token = header && header.split(" ")[1]   // "Bearer kfjkdsfjkdjfkdsjfkdsjfsdfjsdkfjs"
-    let token = req.cookies.authToken;
-    console.log("aaaaaaaaaaaaaaaaaaaaaaa")
-    console.log(token);
+    let token = req.cookies.authToken || '';
+    // console.log("AUTHTOKEN",token)
     // console.log(req.cookies);
     // console.log(`Auth Token ${token}`)
 
@@ -17,7 +16,7 @@ export function authMiddleware(req, res, next) {
         return res.status(401).send("No Token") 
     }
     else {
-        jwt.verify(token, SECRET, (err, user) => {
+        return jwt.verify(token, SECRET, (err, user) => {
 
             if (err) {
                 console.log(err)

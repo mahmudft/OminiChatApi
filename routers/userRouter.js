@@ -117,11 +117,11 @@ user.get("/search", authMiddleware, async (req,res)=>{
     if(!search){
       return res.status(400).json([]);
     }
-    console.log("-----------------")
+    // console.log("-----------------")
     let users = await User.find({ name: { $regex: new RegExp(search, "i") } }).select('name').select('email');
 
     users = users.filter(user => user._id.toString() != myid);
-    console.log(users);
+    // console.log(users);
     if(users&&users.length>0){
       return res.status(200).json(users)
     }
